@@ -1,0 +1,88 @@
+---
+title: FLC Halibut Bycatch Summary
+author: (MOCKUP FLEET MANAGER REPORT)
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  pdf_document:
+    fig_caption: false
+fontsize: 10pt
+geometry: margin=0.75in
+fig.env: graphicx
+---
+
+```{r global_options, include=FALSE, warning=FALSE, message=FALSE, echo=FALSE}
+knitr::opts_chunk$set(fig.width=7.0, fig.height=1.8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{R,runFLCscript}
+	source("FLC_report1.R")
+```
+
+###Pacific cod catch
+The cumulative catch for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(flc_catch[nrow(flc_catch),"PCodCw"],0),big.mark=",")` mt, and the catch in the past week is `r prettyNum(round(flc_catch[nrow(flc_catch),"PCodWt"],0),big.mark=",")` mt.
+
+```{R,codCatch,fig.margin = TRUE}
+	(p3 + theme_bw(base_size=10))
+```
+
+###Pacific halibut mortality
+The cumulative mortality for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalCw"],0),big.mark=",")` mt, and the mortality in the past week is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalWt"],0),big.mark=",")` mt.
+
+```{R,halCatch}
+	(p4 + theme_bw(base_size=10))
+```
+
+The halibut encounter rate this past week was `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalRt"]*1000,2),big.mark=",")` kg of halibut per ton of cod, and the average rate for the year
+`r xx<-(flc_catch %>% ungroup() %>% filter(Year==max(Year))  %>% summarise(mean(PHalRt)*1000)); round(xx,2)` kg/ton.
+
+### Viability sampling
+Total number of halibut viability samples to date is `r sum(counts[["ytd"]])`.
+
+```{R,ViabilitySummary}
+	library(pander)
+  panderOptions('digits', 2)
+  panderOptions('round', 2)
+  panderOptions('keep.trailing.zeros', TRUE)
+	
+	today = format(Sys.time(), '%d %B, %Y')
+	set.caption(paste("Viability samples as of",today), permanent = FALSE)
+	pander(TBL_1)
+```
+
+### Discard mortality rates
+The year to date discard mortality rate based on all viability sampling is `r library(scales); percent(weighted.mean(mr,counts$ytd,na.rm=TRUE))`. 
+ In the previous 2-weeks the rate was `r percent(weighted.mean(mr,counts$p2w,na.rm=TRUE))`. In the last week `r percent(weighted.mean(mr,counts$p1w,na.rm=TRUE))`.
+
+
+### NMFS stat area summary
+```{R,catchSummary}
+	library(pander)
+  panderOptions('digits', 2)
+  panderOptions('round', 2)
+  panderOptions('keep.trailing.zeros', TRUE)
+  pander(x=fa_catch, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending on ",today(),"."))
+```
+
+### Vessel Rates and Ranking
+```{R,vesselRates}
+	set.caption("Vessel Rates in kg of halibut per ton of OTC",permanent=FALSE)
+	pander(vesselRates)
+```
+
+### Catch-to-date by gear type.
+Show a table with the breakdown of BSAI groundfish catch & bycatch by gear types: HAL, NPT, POT, PTR, ALL.
+
+### Blue King Crab
+Show BKC catch-to-date by fishing area, and report the number caught in the Prib's Zone.  Simple table will suffice.
+
+### Halibut hotspots
+Heat map based on the halibut encounter rates in the H\&L CP fishery.
+
+How this will eventually work, I'm just calculating the nearest neighbor density for all sets in the past week where the halibut encounter rate is greather than the median rate of all sets for that week.  For now the rate is based on (kg Halibut pre mortality)/(Official Total Catch)
+
+```{R,fig.width=4,fig.height=4}
+	#bmap
+```
+
+
