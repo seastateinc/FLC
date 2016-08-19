@@ -12,7 +12,7 @@
 # 	vessel performance over the past week and season-to-date performance on 
 # 	halibut bycatch rates.
 #
-#
+# Modifications: Aug 15, 2016.
 #
 # ---------------------------------------------------------------------------- #
 
@@ -30,6 +30,10 @@ load("../../../database/RawObsLength.Rdata")
 
 H <- AnalysisHaulTable %>% transform(HaulDate=as.Date(HaulDate))%>% tbl_df()
 L <- RawObsLength %>% tbl_df()
+
+.TODAY <- today()
+.TODAY <- ymd("2016-07-28") # To compare with Janet's report.
+
 
 # Vessel and permit numbers.
 PermitVessel <- unique(L %>% select(permit,Vessel=vessel))
@@ -49,7 +53,7 @@ D <- D %>%
 # ---------------------------------------------------------------------------- #
 # Fig 1 & 2. Catch Summary for PCod & PHal in CP sector (excluding CDQ)
 # ---------------------------------------------------------------------------- #
-# The following filter should reduce H to CP, HAL, BSAI for FLC.
+# The following filter should reduce HaulTable to CP, HAL, BSAI for FLC.
 tc <- H %>%
 			dplyr::filter(VesselType=="CP",
 			              GearCode=="HAL",
@@ -87,16 +91,28 @@ p2 <- ggplot(flc_catch%>%filter(Season=="B"),
 			labs(x="Week of the Year",y="Catch (mt)",fill="Year") +
 			ggtitle("Cumulative catch")
 
+
+
+
+## Feedback from FLC.  For p3, need to winnow in on current week.
+## Maybe add grey polygon for previous years, and transparent barplot
+## for the current year for clarity.
+wk   <- seq(week(today())-3,week(today())+3)
 gdat <- flc_catch.g %>% 
-				filter(Season=="B",Variable %in% c("PCodWt","PCodCw"))
+				filter(Season=="B",Variable %in% c("PCodWt"),
+				       Week <= max(wk))
 
 # change labels for facets
-levels(gdat$Variable)[1:2] <- c("Cumulative Catch","Weekly Catch")				
+levels(gdat$Variable)[1:2] <- c("Weekly Catch")				
 
-p3 <- ggplot(gdat,aes(Week,Value/1000,fill=factor(Year))) + 
-			geom_bar(stat="identity",position="dodge") +
-			labs(x="Week of the year",y="Catch (1000 mt)",fill="Year") +
-			facet_wrap(~Variable,scales="free_y")
+p3 <- ggplot(gdat) + 
+			geom_area(aes(Week,Value/1000),data=gdat%>%filter(Year==year(today())-1),fill="orange",alpha=0.5) +
+			geom_bar(aes(Week,Value/1000),data=gdat%>%filter(Year==year(today())),stat="identity",alpha=0.5)+
+			labs(x="Week of the year",y="Catch (1000 mt)",fill="Year") 
+			
+			# geom_bar(stat="identity",position="dodge") +
+			# facet_wrap(~Variable,scales="free_y")
+
 
 hdat <- flc_catch.g %>%
 				filter(Season=="B",Variable %in% c("PHalWt","PHalCw"))

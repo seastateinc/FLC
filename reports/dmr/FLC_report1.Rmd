@@ -76,6 +76,7 @@ Show a table with the breakdown of BSAI groundfish catch & bycatch by gear types
 ### Blue King Crab
 Show BKC catch-to-date by fishing area, and report the number caught in the Prib's Zone.  Simple table will suffice.
 
+
 ### Halibut hotspots
 Heat map based on the halibut encounter rates in the H\&L CP fishery.
 
@@ -84,5 +85,4 @@ How this will eventually work, I'm just calculating the nearest neighbor density
 ```{R,fig.width=4,fig.height=4}
 	#bmap
 ```
-
 
