@@ -11,31 +11,107 @@ fig.env: graphicx
 ---
 
 ```{r global_options, include=FALSE, warning=FALSE, message=FALSE, echo=FALSE}
-knitr::opts_chunk$set(fig.width=7.0, fig.height=1.8, fig.path='Figs/',
+knitr::opts_chunk$set(fig.width=7.0, fig.height=2.0, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE)
+library(pander)
 ```
 
 ```{R,runFLCscript}
 	source("FLC_report1.R")
+	source("FLC_FleetReport.R")
+```
+### Overview
+
+```{R,OverviewTable}
+	library(pander)
+  panderOptions('digits', 2)
+  panderOptions('round', 2)
+  panderOptions('keep.trailing.zeros', TRUE)
+  panderOptions('big.mark', ",")
+  pander(x=OverviewTable, keep.line.breaks = TRUE, 
+  	caption=paste0("Catch statistics for week ending ",.RWKS[length(.RWKS)-1]," (Week ", .WEEK, ")."),justify='right')
 ```
 
-###Pacific cod catch
-The cumulative catch for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(flc_catch[nrow(flc_catch),"PCodCw"],0),big.mark=",")` mt, and the catch in the past week is `r prettyNum(round(flc_catch[nrow(flc_catch),"PCodWt"],0),big.mark=",")` mt.
+
+```{R}
+#Pre-calc some summary statistics.
+	S <- AHT %>% filter(Year==year(today())) %>%
+			 mutate(HalibutEncounterRate=PreMortalityPacificHalibutWt/Otc*1000)
+
+	NumberOfHauls <- nrow(S) %>% prettyNum(big.mark=",")
+
+	musd <- S %>% 
+				summarise(mean(HalibutEncounterRate,na.rm=TRUE),
+									sd(HalibutEncounterRate,na.rm=TRUE)) %>%
+				round(1)
+
+	musd2 <- S %>%
+				filter(RepWeek == max(RepWeek,na.rm=TRUE)) %>%
+				summarise(mean(HalibutEncounterRate,na.rm=TRUE),
+									sd(HalibutEncounterRate,na.rm=TRUE)) %>%
+				round(1)
+
+	NumberOfHaulsPastWeek <- S %>%
+				filter( RepWeek == .RWKS[length(.RWKS)-2]) %>% nrow
+
+	Period <- S %>% filter(RepWeek == max(RepWeek-7,na.rm=TRUE)) %>% 
+				summarise(min(HaulDate),max(HaulDate))
+
+	WeekNo <- week(.RWKS[length(.RWKS)-1])
+
+```
+
+
+
+<!-- Reporting period:  date range `r Period[1]` to `r Period[2]`, week `r WeekNo`
+
+
+* Total number of sets: cumulative `r NumberOfHauls`, past 7-days `r NumberOfHaulsPastWeek`
+* Pacific Cod: cumulative 
+`r prettyNum(round(sum(G[["PCodWt"]]),0),big.mark=",")` mt, past 7-days `r prettyNum(round(G[nrow(G),"PCodWt"],0),big.mark=",")` mt.
+* Pacific Halibut: cumulative 
+`r prettyNum(round(sum(G[["PHalWt"]]),0),big.mark=",")` mt, past 7-days `r prettyNum(round(G[nrow(G),"PHalWt"]*1000,0),big.mark=",")` kg.
+* YTD Halibut Encounter Rate: Average = `r musd[1]` (SD=`r musd[2]`) kg halibut per ton OTC.
+* Previous week Halibut Encounter Rate: Average = `r musd2[1]` (SD=`r musd2[2]`) kg halibut per ton OTC.
+ -->
+
 
 ```{R,codCatch,fig.margin = TRUE}
-	(p3 + theme_bw(base_size=10))
+	#(p3 + theme_bw(base_size=10))
+	G2 + theme_bw(base_size=10)
 ```
 
-###Pacific halibut mortality
+<!-- ###Pacific halibut mortality
 The cumulative mortality for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalCw"],0),big.mark=",")` mt, and the mortality in the past week is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalWt"],0),big.mark=",")` mt.
 
 ```{R,halCatch}
 	(p4 + theme_bw(base_size=10))
 ```
+ -->
 
-The halibut encounter rate this past week was `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalRt"]*1000,2),big.mark=",")` kg of halibut per ton of cod, and the average rate for the year
+
+
+
+<!-- The halibut encounter rate this past week was 
 `r xx<-(flc_catch %>% ungroup() %>% filter(Year==max(Year))  %>% summarise(mean(PHalRt)*1000)); round(xx,2)` kg/ton.
+ -->
 
+
+### NMFS stat area summary
+```{R,catchSummary}
+	library(pander)
+  panderOptions('digits', 2)
+  panderOptions('round', 2)
+  panderOptions('keep.trailing.zeros', TRUE)
+  panderOptions('big.mark', ",")
+  pander(x=statAreaRates, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",.RWKS[length(.RWKS)-1],"."),justify='right')
+```
+
+### Vessel Rates and Ranking
+```{R,vesselRates}
+	set.caption("Vessel Rates in kg of halibut per ton of OTC for the week ending `r Period[2]`.",permanent=FALSE)
+	pander(vesselRates,justify='right',caption=paste0("Vessel Rates in kg of halibut per ton of OTC for the week ending ",.RWKS[length(.RWKS)-1], "."))
+```
 ### Viability sampling
 Total number of halibut viability samples to date is `r sum(counts[["ytd"]])`.
 
@@ -53,22 +129,6 @@ Total number of halibut viability samples to date is `r sum(counts[["ytd"]])`.
 ### Discard mortality rates
 The year to date discard mortality rate based on all viability sampling is `r library(scales); percent(weighted.mean(mr,counts$ytd,na.rm=TRUE))`. 
  In the previous 2-weeks the rate was `r percent(weighted.mean(mr,counts$p2w,na.rm=TRUE))`. In the last week `r percent(weighted.mean(mr,counts$p1w,na.rm=TRUE))`.
-
-
-### NMFS stat area summary
-```{R,catchSummary}
-	library(pander)
-  panderOptions('digits', 2)
-  panderOptions('round', 2)
-  panderOptions('keep.trailing.zeros', TRUE)
-  pander(x=fa_catch, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending on ",today(),"."))
-```
-
-### Vessel Rates and Ranking
-```{R,vesselRates}
-	set.caption("Vessel Rates in kg of halibut per ton of OTC",permanent=FALSE)
-	pander(vesselRates)
-```
 
 ### Catch-to-date by gear type.
 Show a table with the breakdown of BSAI groundfish catch & bycatch by gear types: HAL, NPT, POT, PTR, ALL.

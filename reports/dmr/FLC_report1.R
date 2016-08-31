@@ -23,7 +23,7 @@ library(tidyr)
 library(ggplot2)
 library(lubridate)
 
-
+#Steve
 # LINK TO DATA TABLES FROM SEASTATEINC
 load("../../../database/AnalysisHaulTable.Rdata")
 load("../../../database/RawObsLength.Rdata")
@@ -212,7 +212,7 @@ fa_catch <- td %>% ungroup() %>% group_by(TripTarget,RA) %>%
 #	Rank Vessels by Halibut bycatch rates
 # ---------------------------------------------------------------------------- #
 
-vesselRates <- H %>%
+vesselRates.old <- H %>%
 		dplyr::filter(VesselType == "CP",
 		              GearCode   == "HAL",
 		              FmpArea    == "BSAI") %>%
@@ -222,33 +222,34 @@ vesselRates <- H %>%
 		dplyr::group_by(TripTarget,Vessel) %>%
 		dplyr::summarise(Rate = sum(PreMortalityPacificHalibutWt*1000)/sum(Otc))%>%
 		dplyr::mutate(Rank = rank(Rate)) %>% 
-		dplyr::arrange(Rate,TripTarget)
+		dplyr::group_by(TripTarget) %>%
+		dplyr::arrange(Rate)
 
 
 
 # ---------------------------------------------------------------------------- #
 # Halibut Hotspot map  (USE MARMAP for BATHYMETRY)
 # ---------------------------------------------------------------------------- #
-library(ggmap)
-library(maptools)
-library(rgdal)
-library(RColorBrewer)
+# library(ggmap)
+# library(maptools)
+# library(rgdal)
+# library(RColorBrewer)
 	
-	# Define the based map.
-	map <- get_map("St Paul Alaska",zoom=5,maptype="hybrid",color="bw")
-	bmap <- ggmap(map)
+# 	# Define the based map.
+# 	map <- get_map("St Paul Alaska",zoom=5,maptype="hybrid",color="bw")
+# 	bmap <- ggmap(map)
 
-mapData <- H %>%
-			dplyr::filter(VesselType=="CP",
-			              GearCode=="HAL",
-			              FmpArea=="BSAI") %>%
-			dplyr::mutate(Longitude=-Longitude,
-			              Rate = PreMortalityPacificHalibutWt/Otc*1000) %>%
-			dplyr::filter(HaulDate >= today()- 14) %>%
-			dplyr::select(HaulDate, HaulNumber, lon=Longitude, lat=Latitude, Rate) %>%
-			dplyr::mutate(hotSpot = ifelse(Rate>quantile(Rate,na.rm=TRUE,prob=0.9),TRUE,FALSE))
+# mapData <- H %>%
+# 			dplyr::filter(VesselType=="CP",
+# 			              GearCode=="HAL",
+# 			              FmpArea=="BSAI") %>%
+# 			dplyr::mutate(Longitude=-Longitude,
+# 			              Rate = PreMortalityPacificHalibutWt/Otc*1000) %>%
+# 			dplyr::filter(HaulDate >= today()- 14) %>%
+# 			dplyr::select(HaulDate, HaulNumber, lon=Longitude, lat=Latitude, Rate) %>%
+# 			dplyr::mutate(hotSpot = ifelse(Rate>quantile(Rate,na.rm=TRUE,prob=0.9),TRUE,FALSE))
 
-p <- bmap + geom_point(data=mapData %>% filter(hotSpot==TRUE),aes(lon,lat))
+# p <- bmap + geom_point(data=mapData %>% filter(hotSpot==TRUE),aes(lon,lat))
 
 
 
