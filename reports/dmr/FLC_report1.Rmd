@@ -1,6 +1,6 @@
 ---
-title: FLC Halibut Bycatch Summary
-author: (MOCKUP FLEET MANAGER REPORT)
+title: FLC Monitoring
+author: Sea State
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
@@ -20,6 +20,9 @@ library(pander)
 	source("FLC_report1.R")
 	source("FLC_FleetReport.R")
 ```
+
+
+
 ### Overview
 
 ```{R,OverviewTable}
@@ -28,73 +31,16 @@ library(pander)
   panderOptions('round', 2)
   panderOptions('keep.trailing.zeros', TRUE)
   panderOptions('big.mark', ",")
-  pander(x=OverviewTable, keep.line.breaks = TRUE, 
-  	caption=paste0("Catch statistics for week ending ",.RWKS[length(.RWKS)-1]," (Week ", .WEEK, ")."),justify='right')
+  panderOptions('keep.line.breaks', TRUE)
+  pander(x=OverviewTable, 
+  	caption=paste0("Catch statistics for week ending ",Period$eow," (Week ", .WEEK, ")."),justify='right')
 ```
 
 
-```{R}
-#Pre-calc some summary statistics.
-	S <- AHT %>% filter(Year==year(today())) %>%
-			 mutate(HalibutEncounterRate=PreMortalityPacificHalibutWt/Otc*1000)
-
-	NumberOfHauls <- nrow(S) %>% prettyNum(big.mark=",")
-
-	musd <- S %>% 
-				summarise(mean(HalibutEncounterRate,na.rm=TRUE),
-									sd(HalibutEncounterRate,na.rm=TRUE)) %>%
-				round(1)
-
-	musd2 <- S %>%
-				filter(RepWeek == max(RepWeek,na.rm=TRUE)) %>%
-				summarise(mean(HalibutEncounterRate,na.rm=TRUE),
-									sd(HalibutEncounterRate,na.rm=TRUE)) %>%
-				round(1)
-
-	NumberOfHaulsPastWeek <- S %>%
-				filter( RepWeek == .RWKS[length(.RWKS)-2]) %>% nrow
-
-	Period <- S %>% filter(RepWeek == max(RepWeek-7,na.rm=TRUE)) %>% 
-				summarise(min(HaulDate),max(HaulDate))
-
-	WeekNo <- week(.RWKS[length(.RWKS)-1])
-
-```
-
-
-
-<!-- Reporting period:  date range `r Period[1]` to `r Period[2]`, week `r WeekNo`
-
-
-* Total number of sets: cumulative `r NumberOfHauls`, past 7-days `r NumberOfHaulsPastWeek`
-* Pacific Cod: cumulative 
-`r prettyNum(round(sum(G[["PCodWt"]]),0),big.mark=",")` mt, past 7-days `r prettyNum(round(G[nrow(G),"PCodWt"],0),big.mark=",")` mt.
-* Pacific Halibut: cumulative 
-`r prettyNum(round(sum(G[["PHalWt"]]),0),big.mark=",")` mt, past 7-days `r prettyNum(round(G[nrow(G),"PHalWt"]*1000,0),big.mark=",")` kg.
-* YTD Halibut Encounter Rate: Average = `r musd[1]` (SD=`r musd[2]`) kg halibut per ton OTC.
-* Previous week Halibut Encounter Rate: Average = `r musd2[1]` (SD=`r musd2[2]`) kg halibut per ton OTC.
- -->
-
-
-```{R,codCatch,fig.margin = TRUE}
-	#(p3 + theme_bw(base_size=10))
+```{R,codCatch,fig.margin = FALSE}
 	G2 + theme_bw(base_size=10)
 ```
 
-<!-- ###Pacific halibut mortality
-The cumulative mortality for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalCw"],0),big.mark=",")` mt, and the mortality in the past week is `r prettyNum(round(flc_catch[nrow(flc_catch),"PHalWt"],0),big.mark=",")` mt.
-
-```{R,halCatch}
-	(p4 + theme_bw(base_size=10))
-```
- -->
-
-
-
-
-<!-- The halibut encounter rate this past week was 
-`r xx<-(flc_catch %>% ungroup() %>% filter(Year==max(Year))  %>% summarise(mean(PHalRt)*1000)); round(xx,2)` kg/ton.
- -->
 
 
 ### NMFS stat area summary
@@ -104,16 +50,25 @@ The cumulative mortality for H\&L CPs (excl. CDQ) to date is `r prettyNum(round(
   panderOptions('round', 2)
   panderOptions('keep.trailing.zeros', TRUE)
   panderOptions('big.mark', ",")
-  pander(x=statAreaRates, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",.RWKS[length(.RWKS)-1],"."),justify='right')
+  pander(x=statAreaRates, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",Period$eow,"."),justify='right')
 ```
+
+
 
 ### Vessel Rates and Ranking
 ```{R,vesselRates}
-	set.caption("Vessel Rates in kg of halibut per ton of OTC for the week ending `r Period[2]`.",permanent=FALSE)
-	pander(vesselRates,justify='right',caption=paste0("Vessel Rates in kg of halibut per ton of OTC for the week ending ",.RWKS[length(.RWKS)-1], "."))
+	pander(vesselRates,
+					justify=c('center','left','center','center'),
+					caption=paste0("Vessel Rates in kg of halibut per ton of groundfish for the week ending ",Period$eow, "."),
+					split.cells=c(10,190,15,15))
 ```
+
+
+
+
 ### Viability sampling
-Total number of halibut viability samples to date is `r sum(counts[["ytd"]])`.
+Total number of hauls sampled to date is 
+`r prettyNum(NumberOfHaulsSampled[2,2],big.mark=",")`, and the total number of Hauls sampled in `r NumberOfHaulsSampled[1,1]` was `r prettyNum(NumberOfHaulsSampled[1,2],big.mark=",")`.
 
 ```{R,ViabilitySummary}
 	library(pander)
@@ -121,10 +76,12 @@ Total number of halibut viability samples to date is `r sum(counts[["ytd"]])`.
   panderOptions('round', 2)
   panderOptions('keep.trailing.zeros', TRUE)
 	
-	today = format(Sys.time(), '%d %B, %Y')
+	today = .TODAY-1
 	set.caption(paste("Viability samples as of",today), permanent = FALSE)
 	pander(TBL_1)
 ```
+
+
 
 ### Discard mortality rates
 The year to date discard mortality rate based on all viability sampling is `r library(scales); percent(weighted.mean(mr,counts$ytd,na.rm=TRUE))`. 
