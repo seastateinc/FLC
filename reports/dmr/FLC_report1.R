@@ -128,7 +128,7 @@ p4 <- ggplot(hdat,aes(Week,Value,fill=factor(Year))) +
 # ---------------------------------------------------------------------------- #
 # Table 1. Summary (all vessels) viability sampling.
 # ---------------------------------------------------------------------------- #
-str_injury=c("Minor","Moderate","Severe","Dead")
+str_injury=as.factor(c("Minor","Moderate","Severe","Dead"))
 mr <- c(0.035,0.363,0.662,1.000)				# discard mortality rates for code 1-4
 t1 <- D %>% 
 			dplyr::filter(injury != 9) %>%  	# remove missing viability samples.

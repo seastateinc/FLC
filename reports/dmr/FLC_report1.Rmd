@@ -14,16 +14,26 @@ fig.env: graphicx
 knitr::opts_chunk$set(fig.width=7.0, fig.height=2.0, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE)
 library(pander)
+library(scales)
 ```
 
 ```{R,runFLCscript}
-	source("FLC_report1.R")
+	#source("FLC_report1.R")
 	source("FLC_FleetReport.R")
 ```
 
 
 
 ### Overview
+```{R,HalibutDMR}
+	h1 <- OverviewTable[1,1]
+	h2 <- OverviewTable[1,2]
+
+	delta <- (h2-h1)/h1
+```
+
+The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r prettyNum(round(OverviewTable[2,2]),big.mark=",")` mt.  At the same week in the previous year, the cumulative catch was `r prettyNum(round(OverviewTable[2,1]),big.mark=",")` mt (Table 1). Halibut catch to date has `r ifelse(delta < 0,"decreased","increased")` by `r percent(abs(delta))` over last year.  
+
 
 ```{R,OverviewTable}
 	library(pander)
@@ -43,7 +53,7 @@ library(pander)
 
 
 
-### NMFS stat area summary
+### NMFS Stat Area Summary
 ```{R,catchSummary}
 	library(pander)
   panderOptions('digits', 2)
@@ -58,17 +68,18 @@ library(pander)
 ### Vessel Rates and Ranking
 ```{R,vesselRates}
 	pander(vesselRates,
+					keep.line.breaks = TRUE,
 					justify=c('center','left','center','center'),
-					caption=paste0("Vessel Rates in kg of halibut per ton of groundfish for the week ending ",Period$eow, "."),
-					split.cells=c(10,190,15,15))
+					caption=paste0("Vessel rates in kg of halibut per ton of groundfish for the week ending ",Period$eow, "."),
+					split.cells=c(10,290,15,15))
 ```
 
 
 
 
-### Viability sampling
+### Viability Sampling
 Total number of hauls sampled to date is 
-`r prettyNum(NumberOfHaulsSampled[2,2],big.mark=",")`, and the total number of Hauls sampled in `r NumberOfHaulsSampled[1,1]` was `r prettyNum(NumberOfHaulsSampled[1,2],big.mark=",")`.
+`r prettyNum(NumberOfHaulsSampled[2,2],big.mark=",")`, and the total number of hauls sampled in `r NumberOfHaulsSampled[1,1]` was `r prettyNum(NumberOfHaulsSampled[1,2],big.mark=",")`.
 
 ```{R,ViabilitySummary}
 	library(pander)
@@ -83,10 +94,17 @@ Total number of hauls sampled to date is
 
 
 
-### Discard mortality rates
-The year to date discard mortality rate based on all viability sampling is `r library(scales); percent(weighted.mean(mr,counts$ytd,na.rm=TRUE))`. 
- In the previous 2-weeks the rate was `r percent(weighted.mean(mr,counts$p2w,na.rm=TRUE))`. In the last week `r percent(weighted.mean(mr,counts$p1w,na.rm=TRUE))`.
+### Discard Mortality Rates (DMR)
 
+The `r year(.TODAY)` discard mortality rate based on all viability samples (Table 4) to date is `r dmr[1,2]` for trips targeting `r dmr[1,1]` (Table 5), and `r dmr[2,2]` for trips targeting `r dmr[2,1]`.
+
+```{R,DMR_Table}
+	library(pander)
+	pander(dmr,
+				 	keep.line.breaks = TRUE,
+				 	caption="Halibut discard mortality rates based on viability sampling.")
+```
+<!-- 
 ### Catch-to-date by gear type.
 Show a table with the breakdown of BSAI groundfish catch & bycatch by gear types: HAL, NPT, POT, PTR, ALL.
 
@@ -103,3 +121,4 @@ How this will eventually work, I'm just calculating the nearest neighbor density
 	#bmap
 ```
 
+ -->
