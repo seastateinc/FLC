@@ -14,16 +14,7 @@ rmarkdown::render(input = input_file, output_file = output_file)
 sender <- "steve@seastateinc.com"  # Replace with a valid address
 
 # Replace with one or more valid addresses
-recipients <- c("steve@seastateinc.com",
-                "karl@seastateinc.com",
-                "katherine@seastateinc.com",
-                scan("FLC_emailList.txt",what=character(),comment.char="#")
-                ) 
-
-
-
-
-
+recipients <- c("martell.steve@gmail.com")  
 email <- send.mail(from = sender,
                    to = recipients,
                    subject= paste("Sea State Reporting Service: FLC Report",output_file),

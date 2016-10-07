@@ -145,6 +145,12 @@ Total number of blue king crab caught to date in `r year(.TODAY)` is `r prettyNu
 
 
 ### Sea Birds
+**NOTE: Work in progress.  I'm still trying to validate these numbers with the regional office. Stay tuned.  
+```{R,Birds}
+	source("FLC_SeaBirds.R")
+	pander(tbl.2)
+```
+
 
 
 
