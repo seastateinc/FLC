@@ -3,7 +3,7 @@ library(lubridate)
 library(rmarkdown)
 library(mailR)
 
-setwd("/Users/steve/Library/Mobile Documents/com~apple~CloudDocs/SSI/FLC/reports/dmr")
+setwd("~/Library/Mobile Documents/com~apple~CloudDocs/SSI/FLC/reports/dmr")
 
 input_file  <- "FLC_report1.Rmd"
 output_file <- paste0("FLC_Week_",week(today()),"_",year(today()),".pdf")

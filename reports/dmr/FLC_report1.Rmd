@@ -144,7 +144,6 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 	idx <- which(AnnualCatch[,1]==iyr)
 ```
 
-Blue King Crab catch to date for `r iyr` in hook & line gear for the CP sector is `r AnnualCatch[idx,1]`.
 
 
 
@@ -152,7 +151,7 @@ Total number of blue king crab caught in hook & line gear to date in `r year(.TO
 
 ```{R,BlueCrabTable}
 	pander(bkc2,keep.line.breaks = TRUE,
-				 	caption=paste0("Number of Blue King Crab caught in Reporting Area in  week ", .WEEK-1, ". No activity is denoted with NA."))
+				 	caption=paste0("Number of Blue King Crab caught in Reporting Area in  week ", .WEEK, ". No activity is denoted with NA."))
 ```
 
 
