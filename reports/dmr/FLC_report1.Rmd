@@ -108,12 +108,14 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 ### Blue King Crab 
 <!-- I have a bug in here -->
 ```{R, BKCcalculations}
-	car250_psc_crab2015 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2015.csv",skip=6)
+	car250_psc_crab2015 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2015.csv",skip=8)
 	
-	car250_psc_crab2016 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2016.csv",skip=9) %>%
-	rename(AREA=REPORTING.AREA)
+	car250_psc_crab2016 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2016.csv",skip=9)
+	# rename(AREA=REPORTING.AREA)
 
 	bkc <- full_join(car250_psc_crab2015,car250_psc_crab2016) %>%
+				 # mutate(Area=ifelse(is.na(REPORTING.AREA),AREA,REPORTING.AREA)) %>%
+				 rename(AREA=REPORTING.AREA) %>%
 				 filter(SPECIES=="BKCR",GEAR=="HAL",
 				 SECTOR %in% c("CP","Catcher Processor")) %>%
 				 mutate(WEEK = mdy(WEEK)) %>%
@@ -124,9 +126,9 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 
 	bkc1 <- bkc %>% group_by(Year) %>% summarise("Blue King Crab"=sum(NUMBER.OF.CRAB))
 
-	bkc2 <- bkc %>% filter(WeekNumber %in% .WEEK-1, Year %in% .YEAR) %>% group_by(Year,AREA) %>% summarise(NumberOfCrab=sum(NUMBER.OF.CRAB))  %>% spread(Year,NumberOfCrab)
+	bkc2 <- bkc %>% filter(WeekNumber %in% .WEEK, Year %in% .YEAR) %>% group_by(Year,AREA) %>% summarise(NumberOfCrab=sum(NUMBER.OF.CRAB))  %>% spread(Year,NumberOfCrab)
 
-	colnames(bkc2) <- c("Area",paste0("Week ",.WEEK-1," (",.YEAR,")"))
+	colnames(bkc2) <- c("Area",paste0("Week ",.WEEK," (",.YEAR,")"))
 
 	fdf <- car250_psc_crab2016 
 
@@ -136,7 +138,17 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 		summarise(No.of.Crab=sum(NUMBER.OF.CRAB))
 ```
 
-Total number of blue king crab caught to date in `r year(.TODAY)` is `r prettyNum(crab2016,big.mark=",")  `. In `r year(.TODAY)-1` the total number of blue king crab was `r prettyNum(bkc1[1,2],big.mark=",")`.
+```{R,BlueKingCrab}
+	source("FLC_bkc.R")
+	iyr <- year(.TODAY)
+	idx <- which(AnnualCatch[,1]==iyr)
+```
+
+Blue King Crab catch to date for `r iyr` in hook & line gear for the CP sector is `r AnnualCatch[idx,1]`.
+
+
+
+Total number of blue king crab caught in hook & line gear to date in `r year(.TODAY)` is `r prettyNum(crab2016,big.mark=",")  `. In `r year(.TODAY)-1` the total number of blue king crab was `r prettyNum(bkc1[1,2],big.mark=",")`.
 
 ```{R,BlueCrabTable}
 	pander(bkc2,keep.line.breaks = TRUE,
