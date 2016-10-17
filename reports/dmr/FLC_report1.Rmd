@@ -4,7 +4,7 @@ author: Sea State
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    fig_caption: false
+    fig_caption: true
 fontsize: 10pt
 geometry: margin=0.75in
 fig.env: graphicx
@@ -32,7 +32,7 @@ library(scales)
 	delta <- (h2-h1)/h1
 ```
 
-The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r prettyNum(round(OverviewTable[2,2]),big.mark=",")` mt.  At the same week in the previous year, the cumulative catch was `r prettyNum(round(OverviewTable[2,1]),big.mark=",")` mt (Table 1). Halibut catch to date has `r ifelse(delta < 0,"decreased","increased")` by `r percent(abs(delta))` over last year.  
+The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r prettyNum(round(OverviewTable[2,2]),big.mark=",")` mt.  At the same week in the previous year, the cumulative catch was `r prettyNum(round(OverviewTable[2,1]),big.mark=",")` mt (Table 1). Halibut encounters to date has `r ifelse(delta < 0,"decreased","increased")` by `r percent(abs(delta))` over last year.  The cumulative halibut mortality to date for 2016 is `r prettyNum(round(OverviewTable[5,2]),big.mark=",")` mt, and at the same time last year `r prettyNum(round(OverviewTable[5,1]),big.mark=",")` mt.
 
 
 ```{R,OverviewTable}
@@ -43,11 +43,11 @@ The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r pr
   panderOptions('big.mark', ",")
   panderOptions('keep.line.breaks', TRUE)
   pander(x=OverviewTable, 
-  	caption=paste0("Catch statistics for week ending ",Period$eow," (Week ", .WEEK, ")."),justify='right')
+  	caption=paste0("Catch statistics (in metric tons) for week ending ",Period$eow," (Week ", .WEEK, ")."),justify='right')
 ```
 
 
-```{R,codCatch,fig.margin = FALSE}
+```{R,codCatch,fig.margin = FALSE,fig.cap="Weekly catch of Pacific cod, and encounters (mt) of Pacific Halibut."}
 	G2 + theme_bw(base_size=10)
 ```
 
@@ -56,11 +56,13 @@ The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r pr
 ### NMFS Stat Area Summary
 ```{R,catchSummary}
 	library(pander)
-  panderOptions('digits', 2)
+  panderOptions('digits', 0)
   panderOptions('round', 2)
+  panderOptions('table.style','multiline')
   panderOptions('keep.trailing.zeros', TRUE)
   panderOptions('big.mark', ",")
-  pander(x=statAreaRates, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",Period$eow,"."),justify='right')
+  #pander(x=statAreaRates, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",Period$eow,"."),justify='right')
+  pander(x=sar_Table, keep.line.breaks = TRUE, caption=paste0("Halibut encounter rates for the week ending ",Period$eow,"."),justify='right')
 ```
 
 
@@ -108,12 +110,17 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 ### Blue King Crab 
 <!-- I have a bug in here -->
 ```{R, BKCcalculations}
-	car250_psc_crab2015 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2015.csv",skip=6)
+	url2015 <- "https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2015.csv"
+
+	car250_psc_crab2015 <- read.csv(url2015,skip=8)
 	
-	car250_psc_crab2016 <- read.csv("https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2016.csv",skip=9) %>%
-	rename(AREA=REPORTING.AREA)
+	url2016 <- "https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2016.csv"
+	car250_psc_crab2016 <- read.csv(url2016,skip=9)
+	# rename(AREA=REPORTING.AREA)
 
 	bkc <- full_join(car250_psc_crab2015,car250_psc_crab2016) %>%
+				 # mutate(Area=ifelse(is.na(REPORTING.AREA),AREA,REPORTING.AREA)) %>%
+				 rename(AREA=REPORTING.AREA) %>%
 				 filter(SPECIES=="BKCR",GEAR=="HAL",
 				 SECTOR %in% c("CP","Catcher Processor")) %>%
 				 mutate(WEEK = mdy(WEEK)) %>%
@@ -124,9 +131,9 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 
 	bkc1 <- bkc %>% group_by(Year) %>% summarise("Blue King Crab"=sum(NUMBER.OF.CRAB))
 
-	bkc2 <- bkc %>% filter(WeekNumber %in% .WEEK-1, Year %in% .YEAR) %>% group_by(Year,AREA) %>% summarise(NumberOfCrab=sum(NUMBER.OF.CRAB))  %>% spread(Year,NumberOfCrab)
+	bkc2 <- bkc %>% filter(WeekNumber %in% .WEEK, Year %in% .YEAR) %>% group_by(Year,AREA) %>% summarise(NumberOfCrab=sum(NUMBER.OF.CRAB))  %>% spread(Year,NumberOfCrab)
 
-	colnames(bkc2) <- c("Area",paste0("Week ",.WEEK-1," (",.YEAR,")"))
+	colnames(bkc2) <- c("Area",paste0("Week ",.WEEK," (",.YEAR,")"))
 
 	fdf <- car250_psc_crab2016 
 
@@ -136,11 +143,20 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 		summarise(No.of.Crab=sum(NUMBER.OF.CRAB))
 ```
 
-Total number of blue king crab caught to date in `r year(.TODAY)` is `r prettyNum(crab2016,big.mark=",")  `. In `r year(.TODAY)-1` the total number of blue king crab was `r prettyNum(bkc1[1,2],big.mark=",")`.
+```{R,BlueKingCrab}
+	source("FLC_bkc.R")
+	iyr <- year(.TODAY)
+	idx <- which(AnnualCatch[,1]==iyr)
+```
+
+
+
+
+Total number of blue king crab caught in hook & line gear to date in `r year(.TODAY)` is `r prettyNum(crab2016,big.mark=",")  `. In `r year(.TODAY)-1` the total number of blue king crab was `r prettyNum(bkc1[1,2],big.mark=",")`.
 
 ```{R,BlueCrabTable}
 	pander(bkc2,keep.line.breaks = TRUE,
-				 	caption=paste0("Number of Blue King Crab caught in Reporting Area in  week ", .WEEK-1, ". No activity is denoted with NA."))
+				 	caption=paste0("Number of Blue King Crab caught in Reporting Area in  week ", .WEEK, ". No activity is denoted with NA."))
 ```
 
 

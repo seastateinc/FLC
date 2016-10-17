@@ -19,9 +19,6 @@ output_file <- paste0("FLC_Week_",week(today()),"_",year(today()),".pdf")
 sender <- "steve@seastateinc.com"  # Replace with a valid address
 
 # Replace with one or more valid addresses
-<<<<<<< HEAD
-recipients <- c("martell.steve@gmail.com")  
-=======
 recipients <- c("steve@seastateinc.com",
                 "karl@seastateinc.com",
                 "katherine@seastateinc.com",
@@ -32,7 +29,6 @@ recipients <- c("steve@seastateinc.com",
 
 
 
->>>>>>> master
 email <- send.mail(from = sender,
                    to = recipients,
                    subject= paste("Sea State Reporting Service: FLC Report",output_file),
