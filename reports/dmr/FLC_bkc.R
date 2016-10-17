@@ -23,7 +23,7 @@ OHRS   <- ObserverHaulReportSpecies %>%
 
 OHR    <- ObserverHaulReport %>% 
 					left_join(OHRPHA,by=c("CatchReportId"="CatchReportId",
-					                      "VesselId"="vesselx`Id",
+					                      "VesselId"="vesselId",
 					                      "Cruise"="cruise",
 					                      "HaulDate"="haulDate",
 					                      "HaulNumber"="haulNumber")) %>% 
@@ -54,17 +54,17 @@ AnnualCatch <- BKC %>% group_by(Year) %>% summarise("Blue King Crab"=sum(Count))
 # 
 # Map Data
 # 
-library(sp)
+# library(sp)
 
-df <- OHR %>% mutate(Longitude=-1*Longitude) %>% 
-filter(year(HaulDate)==2016) %>%
-select(Longitude,Latitude,
-       bluekingcrab=ExtrapolatedNumber,
-       VesselType) %>% as.data.frame()
+# df <- OHR %>% mutate(Longitude=-1*Longitude) %>% 
+# filter(year(HaulDate)==2016) %>%
+# select(Longitude,Latitude,
+#        bluekingcrab=ExtrapolatedNumber,
+#        VesselType) %>% as.data.frame()
 
-coordinates(df) <- ~ Longitude+Latitude
-projection(df) <- "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
-mapview(df,zcol=c("bluekingcrab","VesselType"))
+# coordinates(df) <- ~ Longitude+Latitude
+# projection(df) <- "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
+# mapview(df,zcol=c("bluekingcrab","VesselType"))
 
 
 

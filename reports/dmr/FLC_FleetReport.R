@@ -127,14 +127,16 @@ library(scales)
 							summarise(PHalWt.mt=sum(PreMortalityPacificHalibutWt),
 							PCodWt.mt=sum(PacificCodWt),
 							EncounterRate=weighted.mean(PHalWt.Erate,TotalFmpGroundfishWeight),
-							NumberOfSets=n())
+							NumberOfSets=n(),
+							PHalMortality.mt = sum(HalibutMortalityWt))
 
 	O1 <- O %>% 
 		group_by(Year) %>% filter(WeekNumber <= .WEEK) %>%
 		summarise(PHalWt.mt=sum(PHalWt.mt),
 		          PCodWt.mt=sum(PCodWt.mt),
 		          EncounterRate=mean(EncounterRate),
-		          NumberOfSets = sum(NumberOfSets)) %>%
+		          NumberOfSets = sum(NumberOfSets),
+		          PHalMortality.mt = sum(PHalMortality.mt)) %>%
 		filter(Year %in% .YEAR)
 
 	O2 <- O %>% 
@@ -143,10 +145,11 @@ library(scales)
 	OverviewTable <- as.data.frame(t(rbind(O1[,-1],O2[,c(-1,-2)])))
 	colnames(OverviewTable) <- c(paste("Cumulative\n", .YEAR),
 	                             paste("Week",.WEEK," \n", .YEAR))
-	rownames(OverviewTable) <- c("P. Halibut (mt)",
-	                             "P. Cod (mt)",
+	rownames(OverviewTable) <- c("P. Halibut",
+	                             "P. Cod",
 	                             "Avg. Rate (kg/mt)",
-	                             "Number of Sets")
+	                             "Number of Sets",
+	                             "Halibut Mortality")
 
 # ---------------------------------------------------------------------------- #
 
@@ -161,7 +164,8 @@ library(scales)
 # ---------------------------------------------------------------------------- #
 	G2 <- O %>% 
 			filter(Year %in% .YEAR) %>% 
-			filter(between(WeekNumber, week(.BDAY-14),week(.TODAY+6))) %>%
+			# filter(between(WeekNumber, week(.BDAY-14),week(.TODAY+6))) %>%
+			filter(between(WeekNumber, week(.TODAY-72),week(.TODAY+6))) %>%
 			gather(Variable,Value,-Year,-WeekNumber) %>%
 			filter(Variable %in% c("PHalWt.mt","PCodWt.mt")) %>%
 			ggplot(aes(factor(WeekNumber),Value,fill=factor(Year))) + 
@@ -169,7 +173,7 @@ library(scales)
 			facet_wrap(~Variable,scale="free_y",
 			           labeller = as_labeller(c(`PHalWt.mt`= "Pacific Halibut",
 			                                  `PCodWt.mt`= "Pacific Cod"))) + 
-			labs(x="Week of the Year",y="Catch (mt)",fill="Year")
+			labs(x="Week of the Year",y="Metric tons caught",fill="Year")
 
 # ---------------------------------------------------------------------------- #
 
@@ -181,7 +185,7 @@ library(scales)
 # ---------------------------------------------------------------------------- #
 # STAT AREA RATES
 # ---------------------------------------------------------------------------- #
-	statAreaRates <- AnalysisHaulTable %>%
+	sar <- AnalysisHaulTable %>%
 		 transform( HaulDate=as.Date(HaulDate) ) %>% 
 				 dplyr::filter(VesselType == "CP",
 				               GearCode == "HAL",
@@ -201,10 +205,26 @@ library(scales)
 		           Rate = weighted.mean(PHalWt.rate,TotalFmpGroundfishWeight),
 		           Mort = sum(HalibutMortalityWt)) %>%
 		 filter( RepWeek == .RWKS[length(.RWKS)-1]) %>%
-		 group_by(TripTarget,RA) %>%
-		 select("Trip\nTarget"=TripTarget,
+		 group_by(TripTarget,RA) 
+		 
+		 # --- deprecate ---
+		 statAreaRates <- sar %>% 
+		 		select("Trip\nTarget"=TripTarget,
 		        "NMFS\nArea" = RA,
-		        "Groundfish \n(mt)" = GF.mt,
+		        "Groundfish\n(mt)" = GF.mt,
+		        "Halibut (kg)" = PHalWt.kg,
+		        "Rate (kg/mt)" = Rate,
+		        "Halibut \nMortality (mt)" = Mort)
+		 # ^^^ deprecate ^^^
+
+		 	statAreaTotals <- sar %>% ungroup() %>%
+		 		summarise_at(vars(NSets,GF.mt,PHalWt.kg,Mort),funs(sum)) %>%
+		 		mutate(TripTarget="Total",Rate=PHalWt.kg/GF.mt) 
+
+		 	sar_Table <- full_join(sar,statAreaTotals) %>%
+		 		select("Trip\nTarget"=TripTarget,
+		        "NMFS\nArea" = RA,
+		        "Groundfish\n(mt)" = GF.mt,
 		        "Halibut (kg)" = PHalWt.kg,
 		        "Rate (kg/mt)" = Rate,
 		        "Halibut \nMortality (mt)" = Mort)
