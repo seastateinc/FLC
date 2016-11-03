@@ -1,5 +1,9 @@
 # FLC_bkc.R
 # R-script for summarising blue king crab catch in FLC
+# ---------------------------------------------------------------------------- #
+# Change Log:
+#		- Nov 3, 2016. Output is now based on Crab Season Dates (Jul-1:Jun-30)
+# ---------------------------------------------------------------------------- #
 library(dplyr)
 library(lubridate)
 
@@ -46,24 +50,26 @@ OHR    <- ObserverHaulReport %>%
 					       # HaulSampled == 1,
 					       SpeciesCode %in% c(6)) %>%
 					mutate(Year = year(HaulDate)) %>%
+					mutate(CrabYear=ifelse(yday(HaulDate)>yday("0000-06-30"),
+					                       year(HaulDate),year(HaulDate)-1)) %>%
 					tbl_df()
 
 BKC <- OHR %>% filter(ReportingArea<600) %>%
-			 group_by(Year,ReportingArea,Sex,SampleType) 
+			 group_by(CrabYear,ReportingArea,Sex,SampleType) 
 
 
 BKC.total <- OHR %>% 
-			 group_by(Year,ReportingArea,Sex,SampleType) %>% 
+			 group_by(CrabYear,ReportingArea,Sex,SampleType) %>% 
 			 summarise(Count=sum(round(ExtrapolatedNumber),na.rm=TRUE))
 
-AnnualCatch <- BKC.total %>% group_by(Year) %>% summarise("Total"=sum(Count))
+AnnualCatch <- BKC.total %>% group_by(CrabYear) %>% summarise("Total"=sum(Count))
 
 YearToDate  <- BKC %>% filter(week(HaulDate) <= week(.TODAY)) %>% 
-	group_by(Year) %>%
+	group_by(CrabYear) %>%
 	summarise("YTD"=sum(round(ExtrapolatedNumber),na.rm=TRUE))
 
 CurrentWeek <- BKC %>% filter(week(HaulDate) == week(.TODAY)) %>%
-	group_by(Year) %>%
+	group_by(CrabYear) %>%
 	summarise("CurrentWeek"=sum(round(ExtrapolatedNumber),na.rm=TRUE))
 
 	bkc_Table <- AnnualCatch %>% left_join(YearToDate) %>%
@@ -72,18 +78,18 @@ CurrentWeek <- BKC %>% filter(week(HaulDate) == week(.TODAY)) %>%
 
 # Table Area by row 
 library(tidyr)
-tb1 <- BKC %>% filter(Year %in% .YEAR) %>% 
+tb1 <- BKC %>% filter(CrabYear %in% .YEAR) %>% 
 		group_by(ReportingArea,Year) %>%
 		summarise(Count=sum(round(ExtrapolatedNumber),na.rm=TRUE)) %>%
 		spread(Year,Count)
 
-tb2 <- BKC %>% filter(Year %in% .YEAR,
+tb2 <- BKC %>% filter(CrabYear %in% .YEAR,
                       week(HaulDate)<=week(.TODAY)) %>% 
 		group_by(ReportingArea,Year) %>%
 		summarise(Count=sum(round(ExtrapolatedNumber),na.rm=TRUE)) %>%
 		spread(Year,Count)
 
-tb3 <- BKC %>% filter(Year %in% .YEAR,
+tb3 <- BKC %>% filter(CrabYear %in% .YEAR,
                       week(HaulDate)==week(.TODAY)) %>% 
 		group_by(ReportingArea,Year) %>%
 		summarise(Count=sum(round(ExtrapolatedNumber),na.rm=TRUE)) %>%
@@ -117,49 +123,49 @@ rtotal <- tbl %>% ungroup() %>% summarise_all(sum,na.rm=TRUE)
 # Determine counts in and out of Pribs		
 # ---------------------------------------------------------------------------- #
 
-T3.1 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR) %>% group_by(Year,PHCA) %>% 
+T3.1 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR) %>% group_by(CrabYear,PHCA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>% na.omit() %>% 
-			spread(Year,Count) %>% filter(PHCA==1)
+			spread(CrabYear,Count) %>% filter(PHCA==1)
 
-T3.2 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR,
+T3.2 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR,
                                        week(HaulDate) <= week(.TODAY)) %>% 
-			group_by(Year,PHCA) %>% 
+			group_by(CrabYear,PHCA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>% na.omit() %>% 
-			spread(Year,Count) %>% filter(PHCA==1)
+			spread(CrabYear,Count) %>% filter(PHCA==1)
 
-T3.3 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR,
+T3.3 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR,
                                        week(HaulDate) == week(.TODAY)) %>% 
-			group_by(Year,PHCA) %>% 
+			group_by(CrabYear,PHCA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>% na.omit() %>% 
-			spread(Year,Count) %>% filter(PHCA==1)
+			spread(CrabYear,Count) %>% filter(PHCA==1)
 
 phca <- left_join(T3.1,T3.2,by="PHCA") %>% left_join(T3.3,by="PHCA")
 
 
 
 
-T4.1 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR) %>% group_by(Year,PBKCSA) %>% 
+T4.1 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR) %>% group_by(CrabYear,PBKCSA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>%
-			spread(Year,Count) %>% filter(PBKCSA==1)
+			spread(CrabYear,Count) %>% filter(PBKCSA==1)
 
 
-T4.2 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR,
+T4.2 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR,
                                        week(HaulDate) <= week(.TODAY)) %>% 
-			group_by(Year,PBKCSA) %>% 
+			group_by(CrabYear,PBKCSA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>% na.omit() %>% 
-			spread(Year,Count) %>% filter(PBKCSA==1)
+			spread(CrabYear,Count) %>% filter(PBKCSA==1)
 
-T4.3 <- left_join(OHR,PRIB) %>% filter(Year %in% .YEAR,
+T4.3 <- left_join(OHR,PRIB) %>% filter(CrabYear %in% .YEAR,
                                        week(HaulDate) == week(.TODAY)) %>% 
-			group_by(Year,PBKCSA) %>% 
+			group_by(CrabYear,PBKCSA) %>% 
 			mutate(BlueKingCrabNo=round(ExtrapolatedNumber,0)) %>%
 			summarise(Count=sum(BlueKingCrabNo)) %>% na.omit() %>% 
-			spread(Year,Count) %>% filter(PBKCSA==1)
+			spread(CrabYear,Count) %>% filter(PBKCSA==1)
 
 pbkcsa <- left_join(T4.1,T4.2,by="PBKCSA") %>% left_join(T4.3,by="PBKCSA")
 

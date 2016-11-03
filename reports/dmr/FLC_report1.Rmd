@@ -35,7 +35,7 @@ We have updated the blue king crab totals to reflect the crab calendar year seas
 	delta <- (h2-h1)/h1
 ```
 
-The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r prettyNum(round(OverviewTable[2,2]),big.mark=",")` mt.  At the same week in the previous year, the cumulative catch was `r prettyNum(round(OverviewTable[2,1]),big.mark=",")` mt (Table 1). Halibut encounters to date has `r ifelse(delta < 0,"decreased","increased")` by `r percent(abs(delta))` over last year.  The cumulative halibut mortality to date for 2016 is `r prettyNum(round(OverviewTable[5,2]),big.mark=",")` mt, and at the same time last year `r prettyNum(round(OverviewTable[5,1]),big.mark=",")` mt.
+The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r prettyNum(round(OverviewTable[2,2]),big.mark=",")` mt.  At the same week in the previous year, the cumulative catch was `r prettyNum(round(OverviewTable[2,1]),big.mark=",")` mt (Table 1). Halibut encounters to date have `r ifelse(delta < 0,"decreased","increased")` by `r percent(abs(delta))` over last year.  The cumulative halibut mortality to date for `r year(today())` is `r prettyNum(round(OverviewTable[5,2]),big.mark=",")` mt, and at the same time last year `r prettyNum(round(OverviewTable[5,1]),big.mark=",")` mt.
 
 
 ```{R,OverviewTable}
@@ -115,6 +115,8 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 ```{R,BlueKingCrab}
 	source("FLC_bkc.R")
 ```
+**NOTE** The calanedar year for Blue King Crab starts on July 1st of each year. Counts in each table reflect the crab calendar year. 
+
 Total cumulative catch of blue king crab in `r .YEAR[2]` is `r sum(tbl[,4],na.rm=TRUE)`. At the same time last year the total cumulative catch was `r sum(tbl[,3],na.rm=TRUE)`.
 
 ```{R,BKC_tbl}	
@@ -147,7 +149,7 @@ Total cumulative catch of blue king crab in `r .YEAR[2]` is `r sum(tbl[,4],na.rm
 ### Sea Birds
 
 
-**NOTE: Work in progress.  I'm still need to validate these numbers with the regional office. Stay tuned.  
+**NOTE**: Work in progress.  I'm still need to validate these numbers with the regional office. Stay tuned.  
 ```{R,Birds}
 	source("FLC_SeaBirds.R")
 	pander(tbl.2)

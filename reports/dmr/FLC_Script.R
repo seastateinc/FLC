@@ -12,7 +12,7 @@ library(rJava)
 setwd("~/DropBox/SSI/FLC/reports/dmr")
 
 input_file  <- "FLC_report1.Rmd"
-output_file <- paste0("FLC_Week_",week(today()-3),"_",year(today()),".pdf")
+output_file <- paste0("FLC_Week_",week(today()),"_",year(today()),".pdf")
 
 if(!file.exists(output_file))
   rmarkdown::render(input = input_file, output_file = output_file)
@@ -28,9 +28,9 @@ recipients <- c("steve@seastateinc.com",
                 scan("FLC_emailList.txt",what=character(),comment.char="#")
                 ) 
 
-# recipients <- c("steve@seastateinc.com")
+recipients <- c("steve@seastateinc.com")
 
-bodymsg <- "\nApplogies for the delay this week, we had some technical difficulties.\n\nSteve\n\n"
+bodymsg <- "\n Please note changes to the Blue King Crab numbers to reflect the calendar year for crab fisheries.\n\nSteve\n\n"
 
 email <- send.mail(from = sender,
                    to = recipients,
