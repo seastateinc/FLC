@@ -10,9 +10,9 @@ library(mailR)
 
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/SSI/FLC/reports/dmr")
 
-# input_file  <- "FLC_report1.Rmd"
+input_file  <- "FLC_report1.Rmd"
 output_file <- paste0("FLC_Week_",week(today()),"_",year(today()),".pdf")
-# rmarkdown::render(input = input_file, output_file = output_file)
+rmarkdown::render(input = input_file, output_file = output_file)
 
 
 # Email out the report.
@@ -25,7 +25,7 @@ recipients <- c("steve@seastateinc.com",
                 scan("FLC_emailList.txt",what=character(),comment.char="#")
                 ) 
 
-# recipients <- c("steve@seastateinc.com")
+recipients <- c("steve@seastateinc.com")
 
 
 

@@ -48,7 +48,7 @@ library(scales)
 # ---------------------------------------------------------------------------- #
 # Note that Janet Smoker's reports use weekly data through the end of saturdays.
 	.TODAY <- today()
-	.TODAY <- today()-(8-wday(today()))
+	.TODAY <- today()-(8-wday(.TODAY))
 	# .TODAY <- as.Date("2016-07-28") 					# To compare with Janet's report.
 	.YEAR  <- c(year(.TODAY)-1,year(.TODAY))
 	.WEEK  <- week(.TODAY-1)
@@ -91,7 +91,7 @@ library(scales)
 				 dplyr::tbl_df()
 
 	# Sampling period dates
-	Period <- AHT %>% filter(WeekNumber == week(.TODAY)) %>% summarise(sow=min(HaulDate),eow=max(HaulDate))
+	Period <- AHT %>% filter(WeekNumber == .WEEK) %>% summarise(sow=min(HaulDate),eow=max(HaulDate))
 
 
 	# RawObsLength - > ROL

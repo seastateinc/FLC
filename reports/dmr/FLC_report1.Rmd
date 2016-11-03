@@ -18,9 +18,12 @@ library(scales)
 ```
 
 ```{R,runFLCscript}
-	#source("FLC_report1.R")
 	source("FLC_FleetReport.R")
 ```
+
+# Changes this week
+We have updated the blue king crab totals to reflect the crab calendar year season start and end dates of July-1 to June-30, respectively.  All blue crab reported for the current calendar year reflect the numbers caught since July 1, 2016.  –Steve
+
 
 
 
@@ -56,7 +59,7 @@ The total cumulative catch of Pacific cod at the end of `r Period$eow` was `r pr
 ### NMFS Stat Area Summary
 ```{R,catchSummary}
 	library(pander)
-  panderOptions('digits', 0)
+  panderOptions('digits', 2)
   panderOptions('round', 2)
   panderOptions('table.style','multiline')
   panderOptions('keep.trailing.zeros', TRUE)
@@ -108,60 +111,43 @@ The `r year(.TODAY)` discard mortality rate based on all viability samples (Tabl
 ```
 
 ### Blue King Crab 
-<!-- I have a bug in here -->
-```{R, BKCcalculations}
-	url2015 <- "https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2015.csv"
-
-	car250_psc_crab2015 <- read.csv(url2015,skip=8)
-	
-	url2016 <- "https://alaskafisheries.noaa.gov/sites/default/files/reports/car250_psc_crab2016.csv"
-	car250_psc_crab2016 <- read.csv(url2016,skip=9)
-	# rename(AREA=REPORTING.AREA)
-
-	bkc <- full_join(car250_psc_crab2015,car250_psc_crab2016) %>%
-				 # mutate(Area=ifelse(is.na(REPORTING.AREA),AREA,REPORTING.AREA)) %>%
-				 rename(AREA=REPORTING.AREA) %>%
-				 filter(SPECIES=="BKCR",GEAR=="HAL",
-				 SECTOR %in% c("CP","Catcher Processor")) %>%
-				 mutate(WEEK = mdy(WEEK)) %>%
-				 mutate(WeekNumber=week(WEEK)) %>%
-				 mutate(Year=year((WEEK))) %>%
-				 tbl_df()
-
-
-	bkc1 <- bkc %>% group_by(Year) %>% summarise("Blue King Crab"=sum(NUMBER.OF.CRAB))
-
-	bkc2 <- bkc %>% filter(WeekNumber %in% .WEEK, Year %in% .YEAR) %>% group_by(Year,AREA) %>% summarise(NumberOfCrab=sum(NUMBER.OF.CRAB))  %>% spread(Year,NumberOfCrab)
-
-	colnames(bkc2) <- c("Area",paste0("Week ",.WEEK," (",.YEAR,")"))
-
-	fdf <- car250_psc_crab2016 
-
-	crab2016 <- car250_psc_crab2016 %>% 
-		filter(SPECIES.NAME == "Blue King Crab",NUMBER.OF.CRAB > 0,GEAR=="HAL",SECTOR == "Catcher Processor",TARGET=="Pacific Cod") %>% 
-		tbl_df() %>% 
-		summarise(No.of.Crab=sum(NUMBER.OF.CRAB))
-```
 
 ```{R,BlueKingCrab}
 	source("FLC_bkc.R")
-	iyr <- year(.TODAY)
-	idx <- which(AnnualCatch[,1]==iyr)
+```
+Total cumulative catch of blue king crab in `r .YEAR[2]` is `r sum(tbl[,4],na.rm=TRUE)`. At the same time last year the total cumulative catch was `r sum(tbl[,3],na.rm=TRUE)`.
+
+```{R,BKC_tbl}	
+	#pander(bkc_Table)
+	colnames(tbl) <- c("Reporting\nArea",
+											"Total\n2015",
+											"Year\nto\ndate\n2015",
+											"Year\nto\ndate\n2016",
+											paste("Week ",.WEEK,"\n2015"),
+											paste("Week ",.WEEK,"\n2016")
+											)
+	pander(tbl,missing="?",caption="Blue king crab numbers by NMFS stat area.")
+```
+
+```{R,BKC_atbl}	
+	atbl <- cbind(area=c("Total","PHCZ","BKCD"),atbl)
+	colnames(atbl) <- c("Reporting\nArea",
+											"Total\n2015",
+											"Year\nto\ndate\n2015",
+											"Year\nto\ndate\n2016",
+											paste("Week ",.WEEK,"\n2015"),
+											paste("Week ",.WEEK,"\n2016")
+											)
+	pander(atbl,missing="?",caption="Total blue king crab numbers, numbers taken inside the Pribilof Habitat Conservation Zone, and the Blue King Crab District.")
 ```
 
 
-
-
-Total number of blue king crab caught in hook & line gear to date in `r year(.TODAY)` is `r prettyNum(crab2016,big.mark=",")  `. In `r year(.TODAY)-1` the total number of blue king crab was `r prettyNum(bkc1[1,2],big.mark=",")`.
-
-```{R,BlueCrabTable}
-	pander(bkc2,keep.line.breaks = TRUE,
-				 	caption=paste0("Number of Blue King Crab caught in Reporting Area in  week ", .WEEK, ". No activity is denoted with NA."))
-```
 
 
 ### Sea Birds
-**NOTE: Work in progress.  I'm still trying to validate these numbers with the regional office. Stay tuned.  
+
+
+**NOTE: Work in progress.  I'm still need to validate these numbers with the regional office. Stay tuned.  
 ```{R,Birds}
 	source("FLC_SeaBirds.R")
 	pander(tbl.2)

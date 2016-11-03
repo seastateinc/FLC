@@ -46,7 +46,7 @@ clipperendeavor@amosconnect.com
 master@clipperepic.amosconnect.com
 frontiermariner@gmail.com
 fvfrontierexplorer@gmail.com
-frontierspirit1@satelite-email.com
+## frontierspirit1@satelite-email.com
 glacierbay2013@gmail.com
  
 ## COASTAL VILLAGES
@@ -70,3 +70,7 @@ alaskamist@amosconnect.com
 ## APICDA
 adrobnica@apicda.com
 lroberts@apicda.com
+
+## Joel
+joel@ydfda.org
+

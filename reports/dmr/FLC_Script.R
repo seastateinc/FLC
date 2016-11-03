@@ -7,12 +7,15 @@
 library(lubridate)
 library(rmarkdown)
 library(mailR)
+library(rJava)
 
-setwd("~/Library/Mobile Documents/com~apple~CloudDocs/SSI/FLC/reports/dmr")
+setwd("~/DropBox/SSI/FLC/reports/dmr")
 
-# input_file  <- "FLC_report1.Rmd"
-output_file <- paste0("FLC_Week_",week(today()),"_",year(today()),".pdf")
-# rmarkdown::render(input = input_file, output_file = output_file)
+input_file  <- "FLC_report1.Rmd"
+output_file <- paste0("FLC_Week_",week(today()-3),"_",year(today()),".pdf")
+
+if(!file.exists(output_file))
+  rmarkdown::render(input = input_file, output_file = output_file)
 
 
 # Email out the report.
@@ -27,11 +30,12 @@ recipients <- c("steve@seastateinc.com",
 
 # recipients <- c("steve@seastateinc.com")
 
+bodymsg <- "\nApplogies for the delay this week, we had some technical difficulties.\n\nSteve\n\n"
 
 email <- send.mail(from = sender,
                    to = recipients,
                    subject= paste("Sea State Reporting Service: FLC Report",output_file),
-                   body = paste0("This report was generated on ",now(),".\n"),
+                   body = paste0("This report was generated on ",now(),".\n",bodymsg),
                    smtp = list(host.name = "smtp.gmail.com", port = 465, 
                       user.name = "martell.steve@gmail.com",            
                       passwd = "H@libut2014", ssl = TRUE),
